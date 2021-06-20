@@ -3,7 +3,8 @@ dotenv.config();
 
 const inquirer = require('inquirer');
 const mysql = require('mysql');
-const cTable = require('console.table');
+const console = require('console');
+//const cTable = require('console.table');
 
 const PORT = process.env.PORT || 3306;
 
@@ -46,17 +47,35 @@ const mainMenuPrompt = {
     ]
 };
 
+// Function to return all employees and their details
+const viewAllEmployees = () => {
+    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id;', (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        runCMS();
+    });
+}
+
+// Function to return all employees in a department
+const viewAllEmployeesByDepartment = () => {
+    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id;', (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        runCMS();
+    });
+}
+
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
     .then((answer) => {
         switch (answer.action) {
             case 'View All Employees':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                viewAllEmployees();
             break;
-            case 'View All EMployees by Department':
+            case 'View All Employees by Department':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                viewAllEmployeesByDepartment();
             break;
             case 'View All Employees by Manager':
                 console.log(`You have selected to ${answer.action}`);
