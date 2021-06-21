@@ -30,8 +30,8 @@ const mainMenuPrompt = {
     message: 'What would you like to do?',
     choices: [
         'View All Employees',
-        'View All Employees by Department',
-        'View All Employees by Manager',
+        'View All Employees in a Department',
+        'View All Employees under a Manager',
         'Add Employee',
         'Remove Employee',
         'Update Employee Role',
@@ -86,7 +86,39 @@ const viewAllEmployeesByDepartment = (action) => {
         console.table(res);
         runCMS();
     });
-}
+};
+
+// Function to allow the user to select a manager name
+const getManagers = () => {
+    const managerList = connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
+        if (err) throw err;
+        let managers = [];
+        for (let i = 0; i < res.length; i++) {
+            managers[i] = res[i].manager;
+        }
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: 'From which manager do you want to see employees?',
+            choices: res
+        })
+        .then((answer) => {
+             viewAllEmployeesByManager(answer.action);
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });    
+    });
+};
+
+// Function to return all employees reporting to a manager
+const viewAllEmployeesByManager = (action) => {
+    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id WHERE employee.manager_id = ?;', action, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        runCMS();
+    });
+};
 
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
@@ -96,13 +128,13 @@ const runCMS = () => {
                 console.log(`You have selected to ${answer.action}`);
                 viewAllEmployees();
             break;
-            case 'View All Employees by Department':
+            case 'View All Employees in a Department':
                 console.log(`You have selected to ${answer.action}`);
                 getDepartments();
             break;
-            case 'View All Employees by Manager':
+            case 'View All Employees under a Manager':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                getManagers();
             break;
             case 'Add Employee':
                 console.log(`You have selected to ${answer.action}`);
