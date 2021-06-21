@@ -58,17 +58,13 @@ const viewAllEmployees = () => {
 
 // Function to allow the user to select a department
 const getDepartments = () => {
-    const departmentList = connection.query('SELECT name AS department FROM department ORDER BY department ASC;', (err, res) => {
+    const departmentList = connection.query('SELECT id AS value, name FROM department ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
-        let departments = [];
-        for (let i = 0; i < res.length; i++) {
-            departments[i] = res[i].department;
-        }
         inquirer.prompt({
             name: 'action',
             type: 'list',
             message: 'From which department do you want to see employees?',
-            choices: departments
+            choices: res
         })
         .then((answer) => {
             viewAllEmployeesByDepartment(answer.action);
@@ -81,7 +77,7 @@ const getDepartments = () => {
 
 // Function to return all employees in a department
 const viewAllEmployeesByDepartment = (action) => {
-    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id WHERE department.name = ?;', action, (err, res) => {
+    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id WHERE department.id = ?;', action, (err, res) => {
         if (err) throw err;
         console.table(res);
         runCMS();
@@ -92,10 +88,6 @@ const viewAllEmployeesByDepartment = (action) => {
 const getManagers = () => {
     const managerList = connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
-        let managers = [];
-        for (let i = 0; i < res.length; i++) {
-            managers[i] = res[i].manager;
-        }
         inquirer.prompt({
             name: 'action',
             type: 'list',
@@ -120,6 +112,15 @@ const viewAllEmployeesByManager = (action) => {
     });
 };
 
+// Function to add an employee to the database
+const addEmployee = () => {
+    inquirer.prompt()
+    .then()
+    .catch((err) => {
+        if (err) throw err;
+    });
+};
+
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
     .then((answer) => {
@@ -138,7 +139,7 @@ const runCMS = () => {
             break;
             case 'Add Employee':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                addEmployee();
             break;
             case 'Remove Employee':
                 console.log(`You have selected to ${answer.action}`);
