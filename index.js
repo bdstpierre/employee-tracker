@@ -151,7 +151,12 @@ const addEmployee = () => {
                         }                
                     ])
                     .then((answer) => {
-                        console.log(`THe new employee is ${answer.first_name} ${answer.last_name} and works as a ${role.action} for ${manager.action}`);
+                        console.log(`The new employee is ${answer.first_name} ${answer.last_name} and works as a ${role.action} for ${manager.action}`);
+                        connection.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES ("${answer.first_name}", "${answer.last_name}", ${role.action}, ${manager.action});`, (err, res) => {
+                            if (err) throw err;
+                            console.log( `Employee ${answer.first_name} ${answer.last_name} added to the database`);
+                            viewAllEmployees();
+                        })
                     })
                     .catch((err) => {
                         if (err) throw err;
