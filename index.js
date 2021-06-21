@@ -30,7 +30,7 @@ const mainMenuPrompt = {
     message: 'What would you like to do?',
     choices: [
         'View All Employees',
-        'View All EMployees by Department',
+        'View All Employees by Department',
         'View All Employees by Manager',
         'Add Employee',
         'Remove Employee',
@@ -56,9 +56,32 @@ const viewAllEmployees = () => {
     });
 }
 
+// Function to allow the user to select a department
+const getDepartments = () => {
+    const departmentList = connection.query('SELECT name AS department FROM department ORDER BY department ASC;', (err, res) => {
+        if (err) throw err;
+        let departments = [];
+        for (let i = 0; i < res.length; i++) {
+            departments[i] = res[i].department;
+        }
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: 'From which department do you want to see employees?',
+            choices: departments
+        })
+        .then((answer) => {
+            viewAllEmployeesByDepartment(answer.action);
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });    
+    });
+};
+
 // Function to return all employees in a department
-const viewAllEmployeesByDepartment = () => {
-    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id;', (err, res) => {
+const viewAllEmployeesByDepartment = (action) => {
+    connection.query('SELECT employee.id AS id, employee.first_name AS first_name, employee.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id WHERE department.name = ?;', action, (err, res) => {
         if (err) throw err;
         console.table(res);
         runCMS();
@@ -75,7 +98,7 @@ const runCMS = () => {
             break;
             case 'View All Employees by Department':
                 console.log(`You have selected to ${answer.action}`);
-                viewAllEmployeesByDepartment();
+                getDepartments();
             break;
             case 'View All Employees by Manager':
                 console.log(`You have selected to ${answer.action}`);
@@ -133,5 +156,5 @@ const runCMS = () => {
     })
     .catch((err) => {
         if (err) throw err;
-    })
+    });
 };
