@@ -193,6 +193,44 @@ const removeEmployee = () => {
     });
 };
 
+// Function to update an employee role
+const updateEmployeeRole = () => {
+    const employeeList = connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: "Select the employee whose role you wish to update:",
+            choices: res
+        })
+        .then((answer) => {
+            const employeeId = answer.action;
+            connection.query('SELECT id as value, title AS name FROM role', (err, res) => {
+                inquirer.prompt({
+                    name: 'action',
+                    type: 'list',
+                    message: "Select the new role for the employee:",
+                    choices: res
+                })
+                .then((answer) => {
+                    const roleId = answer.action;
+                    connection.query('UPDATE employee SET role_id = ? WHERE id = ?;', [roleId, employeeId], (err, res) => {
+                        if (err) throw err;
+                        console.log(`Employee with ID ${employeeId} now has the role ${roleId}`);
+                        viewAllEmployees();
+                    });
+                })
+                .catch((err) => {
+                    if (err) throw err;
+                });       
+            })
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });
+    });
+};
+
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
     .then((answer) => {
@@ -219,7 +257,7 @@ const runCMS = () => {
             break;
             case 'Update Employee Role':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                updateEmployeeRole();
             break;
             case 'Update Employee Manager':
                 console.log(`You have selected to ${answer.action}`);
