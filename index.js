@@ -126,7 +126,6 @@ const addEmployee = () => {
         })
         .then((answer) => {
             manager = answer;
-            console.table(answer);
             const roleList = connection.query('SELECT role.id AS value, role.title AS name FROM role WHERE role.title IS NOT NULL ORDER BY name ASC;', (err, res) => {
                 if (err) throw err;
                 inquirer.prompt({
@@ -137,7 +136,6 @@ const addEmployee = () => {
                 })
                 .then((answer) => {
                     role = answer;
-                    console.table(role);
                     inquirer.prompt([
                         {
                             name: 'first_name',
@@ -151,30 +149,48 @@ const addEmployee = () => {
                         }                
                     ])
                     .then((answer) => {
-                        console.log(`The new employee is ${answer.first_name} ${answer.last_name} and works as a ${role.action} for ${manager.action}`);
                         connection.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES ("${answer.first_name}", "${answer.last_name}", ${role.action}, ${manager.action});`, (err, res) => {
                             if (err) throw err;
                             console.log( `Employee ${answer.first_name} ${answer.last_name} added to the database`);
                             viewAllEmployees();
-                        })
+                        });
                     })
                     .catch((err) => {
                         if (err) throw err;
                     });
-                
                 })
                 .catch((err) => {
                     if (err) throw err;
                 });    
-            
             });
-        
         })
         .catch((err) => {
             if (err) throw err;
         });
     });
+};
 
+// Function to remove an employee
+const removeEmployee = () => {
+    const employeeList = connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: "Select the employee you wish to remove:",
+            choices: res
+        })
+        .then((answer) => {
+            connection.query('DELETE FROM employee WHERE id = ?;', answer.action, (err, res) => {
+                if (err) throw err;
+                console.log(`Employee with ID ${answer.action} has been removed`);
+                viewAllEmployees();
+            })
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });
+    });
 };
 
 const runCMS = () => {
@@ -199,7 +215,7 @@ const runCMS = () => {
             break;
             case 'Remove Employee':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                removeEmployee();
             break;
             case 'Update Employee Role':
                 console.log(`You have selected to ${answer.action}`);
