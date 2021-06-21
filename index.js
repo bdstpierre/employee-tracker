@@ -114,11 +114,62 @@ const viewAllEmployeesByManager = (action) => {
 
 // Function to add an employee to the database
 const addEmployee = () => {
-    inquirer.prompt()
-    .then()
-    .catch((err) => {
+    let manager = '';
+    let role = '';
+    const managerList = connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: "Select the new employee's manager:",
+            choices: res
+        })
+        .then((answer) => {
+            manager = answer;
+            console.table(answer);
+            const roleList = connection.query('SELECT role.id AS value, role.title AS name FROM role WHERE role.title IS NOT NULL ORDER BY name ASC;', (err, res) => {
+                if (err) throw err;
+                inquirer.prompt({
+                    name: 'action',
+                    type: 'list',
+                    message: "Select the new employee's role:",
+                    choices: res
+                })
+                .then((answer) => {
+                    role = answer;
+                    console.table(role);
+                    inquirer.prompt([
+                        {
+                            name: 'first_name',
+                            type: 'input',
+                            message: "Please enter the new employee's first name:"
+                        },
+                        {
+                            name: 'last_name',
+                            type: 'input',
+                            message: "Please enter the new employee's last name:"
+                        }                
+                    ])
+                    .then((answer) => {
+                        console.log(`THe new employee is ${answer.first_name} ${answer.last_name} and works as a ${role.action} for ${manager.action}`);
+                    })
+                    .catch((err) => {
+                        if (err) throw err;
+                    });
+                
+                })
+                .catch((err) => {
+                    if (err) throw err;
+                });    
+            
+            });
+        
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });
     });
+
 };
 
 const runCMS = () => {
