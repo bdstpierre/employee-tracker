@@ -231,6 +231,44 @@ const updateEmployeeRole = () => {
     });
 };
 
+// Function to update an employee manager
+const updateEmployeeManager = () => {
+    const employeeList = connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: "Select the employee whose manager you wish to update:",
+            choices: res
+        })
+        .then((answer) => {
+            const employeeId = answer.action;
+            connection.query('SELECT id as value, CONCAT(first_name, " ", last_name) AS name FROM employee', (err, res) => {
+                inquirer.prompt({
+                    name: 'action',
+                    type: 'list',
+                    message: "Select the new manager for the employee:",
+                    choices: res
+                })
+                .then((answer) => {
+                    const managerId = answer.action;
+                    connection.query('UPDATE employee SET manager_id = ? WHERE id = ?;', [managerId, employeeId], (err, res) => {
+                        if (err) throw err;
+                        console.log(`Employee with ID ${employeeId} now has manager with ID ${managerId}`);
+                        viewAllEmployees();
+                    });
+                })
+                .catch((err) => {
+                    if (err) throw err;
+                });       
+            })
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });
+    });
+};
+
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
     .then((answer) => {
@@ -261,7 +299,7 @@ const runCMS = () => {
             break;
             case 'Update Employee Manager':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                updateEmployeeManager();
             break;
             case 'View All Roles':
                 console.log(`You have selected to ${answer.action}`);
