@@ -396,6 +396,16 @@ const removeDepartment = () => {
     });
 };
 
+// Function to list total salries for each department
+const sumSalaryByDepartment = () => {
+    // connection.query('SELECT department.name AS department, SUM(role.salary) AS "department budget [$]" FROM department LEFT JOIN role ON department.id = role.department_id RIGHT JOIN employee ON employee.role_id = role.id GROUP BY department ORDER BY department;', (err, res) => {
+    connection.query('SELECT department.name AS department, SUM(role.salary) AS "department salary [$]" FROM role RIGHT JOIN employee ON role.id = employee.role_id RIGHT JOIN department ON role.department_id = department.id GROUP BY department ORDER BY department;', (err, res) => {
+        if (err) throw err;
+    console.table(res);
+    runCMS();
+    })
+}
+
 // Function to run the main menu system
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
@@ -455,7 +465,7 @@ const runCMS = () => {
             break;
             case 'View Salary Budgets by Department':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                sumSalaryByDepartment();
             break;
             default:
                 console.log(`You have selected to ${answer.action}`);
