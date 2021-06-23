@@ -54,11 +54,11 @@ const viewAllEmployees = () => {
         console.table(res);
         runCMS();
     });
-}
+};
 
 // Function to allow the user to select a department
 const getDepartments = () => {
-    const departmentList = connection.query('SELECT id AS value, name FROM department ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT id AS value, name FROM department ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
@@ -86,7 +86,7 @@ const viewAllEmployeesByDepartment = (action) => {
 
 // Function to allow the user to select a manager name
 const getManagers = () => {
-    const managerList = connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
@@ -116,7 +116,7 @@ const viewAllEmployeesByManager = (action) => {
 const addEmployee = () => {
     let manager = '';
     let role = '';
-    const managerList = connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT DISTINCT employee.manager_id AS value, CONCAT(manager.first_name, " ", manager.last_name) AS name FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id where manager.id IS NOT NULL ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
@@ -126,7 +126,7 @@ const addEmployee = () => {
         })
         .then((answer) => {
             manager = answer;
-            const roleList = connection.query('SELECT role.id AS value, role.title AS name FROM role WHERE role.title IS NOT NULL ORDER BY name ASC;', (err, res) => {
+            connection.query('SELECT role.id AS value, role.title AS name FROM role WHERE role.title IS NOT NULL ORDER BY name ASC;', (err, res) => {
                 if (err) throw err;
                 inquirer.prompt({
                     name: 'action',
@@ -172,7 +172,7 @@ const addEmployee = () => {
 
 // Function to remove an employee
 const removeEmployee = () => {
-    const employeeList = connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
@@ -195,7 +195,7 @@ const removeEmployee = () => {
 
 // Function to update an employee role
 const updateEmployeeRole = () => {
-    const employeeList = connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
@@ -206,6 +206,7 @@ const updateEmployeeRole = () => {
         .then((answer) => {
             const employeeId = answer.action;
             connection.query('SELECT id as value, title AS name FROM role', (err, res) => {
+                if (err) throw err;
                 inquirer.prompt({
                     name: 'action',
                     type: 'list',
@@ -233,7 +234,7 @@ const updateEmployeeRole = () => {
 
 // Function to update an employee manager
 const updateEmployeeManager = () => {
-    const employeeList = connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT employee.id AS value, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
@@ -242,8 +243,10 @@ const updateEmployeeManager = () => {
             choices: res
         })
         .then((answer) => {
+            console.table(employeeList);
             const employeeId = answer.action;
             connection.query('SELECT id as value, CONCAT(first_name, " ", last_name) AS name FROM employee', (err, res) => {
+                if (err) throw err;
                 inquirer.prompt({
                     name: 'action',
                     type: 'list',
@@ -268,6 +271,15 @@ const updateEmployeeManager = () => {
         });
     });
 };
+
+// Function to list all the roles
+const viewAllRoles = () => {
+    connection.query('SELECT role.id AS id, role.title AS title, role.salary AS salary, department.name AS department FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY department, title ASC;', (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        runCMS();
+    });
+}
 
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
@@ -303,7 +315,7 @@ const runCMS = () => {
             break;
             case 'View All Roles':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                viewAllRoles();
             break;
             case 'Add Role':
                 console.log(`You have selected to ${answer.action}`);
