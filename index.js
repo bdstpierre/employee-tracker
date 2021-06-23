@@ -279,7 +279,44 @@ const viewAllRoles = () => {
         console.table(res);
         runCMS();
     });
-}
+};
+
+// Function to add a role
+const addRole = () => {
+    connection.query('SELECT id AS value, name FROM department ORDER BY name;', (err, res) => {
+        if (err) throw err;
+        const departmentList = res;
+        connection.query('SELECT role.id AS id, role.title AS title, role.salary AS salary, department.name AS department FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY department, title ASC;', (err, res) => {
+            if (err) throw err;
+            console.table(res);
+            inquirer.prompt([{
+                name: 'title',
+                type: 'input',
+                message: "Current roles are listed above.\nWhat title would you like the new role to have?"
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: "What salary would you like the new role to have?"
+            },        
+            {
+                name: 'department',
+                type: 'list',
+                message: "Select the department this new role is in:",
+                choices: departmentList
+            }])
+            .then((answer) => {
+                connection.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?);', [answer.title, answer.salary, answer.department], (err, res) => {
+                    if (err) throw err;
+                    viewAllRoles();
+                });
+            })
+            .catch((err) => {
+                if(err) throw err;
+            });    
+        });
+    });
+};
 
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
@@ -319,7 +356,7 @@ const runCMS = () => {
             break;
             case 'Add Role':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                addRole();
             break;
             case 'Remove Role':
                 console.log(`You have selected to ${answer.action}`);
