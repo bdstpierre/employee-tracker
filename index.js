@@ -352,56 +352,42 @@ const viewAllDepartments = () => {
 
 // Function to add a department
 const addDepartment = () => {
-    connection.query('SELECT id AS value, name FROM department ORDER BY name;', (err, res) => {
+    connection.query('SELECT id, name AS department FROM department ORDER BY name;', (err, res) => {
         if (err) throw err;
-        const departmentList = res;
-        connection.query('SELECT role.id AS id, role.title AS title, role.salary AS salary, department.name AS department FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY department, title ASC;', (err, res) => {
-            if (err) throw err;
-            console.table(res);
-            inquirer.prompt([{
-                name: 'title',
-                type: 'input',
-                message: "Current roles are listed above.\nWhat title would you like the new role to have?"
-            },
-            {
-                name: 'salary',
-                type: 'input',
-                message: "What salary would you like the new role to have?"
-            },        
-            {
-                name: 'department',
-                type: 'list',
-                message: "Select the department this new role is in:",
-                choices: departmentList
-            }])
-            .then((answer) => {
-                connection.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?);', [answer.title, answer.salary, answer.department], (err, res) => {
-                    if (err) throw err;
-                    viewAllRoles();
-                });
-            })
-            .catch((err) => {
-                if(err) throw err;
-            });    
-        });
+        console.table(res);
+        inquirer.prompt(
+        {
+            name: 'department',
+            type: 'input',
+            message: "The current departments are listed above.\nWhat department would you like to add?"
+        })
+        .then((answer) => {
+            connection.query('INSERT INTO department (name) VALUES (?);', [answer.department], (err, res) => {
+                if (err) throw err;
+                viewAllDepartments();
+            });
+        })
+        .catch((err) => {
+            if(err) throw err;
+        });    
     });
 };
 
 // Function to remove a department
 const removeDepartment = () => {
-    connection.query('SELECT role.id AS value, CONCAT(role.title, " in the ", department.name, " department") AS name FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY name ASC;', (err, res) => {
+    connection.query('SELECT department.id AS value, department.name AS name FROM department ORDER BY name ASC;', (err, res) => {
         if (err) throw err;
         inquirer.prompt({
             name: 'action',
             type: 'list',
-            message: "Select the role you wish to remove:",
+            message: "Select the department you wish to remove:",
             choices: res
         })
         .then((answer) => {
-            connection.query('DELETE FROM role WHERE id = ?;', answer.action, (err, res) => {
+            connection.query('DELETE FROM department WHERE id = ?;', answer.action, (err, res) => {
                 if (err) throw err;
-                console.log(`Role with ID ${answer.action} has been removed`);
-                viewAllRoles();
+                console.log(`Department with ID ${answer.action} has been removed`);
+                viewAllDepartments();
             })
         })
         .catch((err) => {
