@@ -243,7 +243,6 @@ const updateEmployeeManager = () => {
             choices: res
         })
         .then((answer) => {
-            console.table(employeeList);
             const employeeId = answer.action;
             connection.query('SELECT id as value, CONCAT(first_name, " ", last_name) AS name FROM employee', (err, res) => {
                 if (err) throw err;
