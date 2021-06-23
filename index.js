@@ -341,6 +341,76 @@ const removeRole = () => {
     });
 };
 
+// Function to list all the departments
+const viewAllDepartments = () => {
+    connection.query('SELECT department.id AS id, department.name AS department FROM department ORDER BY department ASC;', (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        runCMS();
+    });
+};
+
+// Function to add a department
+const addDepartment = () => {
+    connection.query('SELECT id AS value, name FROM department ORDER BY name;', (err, res) => {
+        if (err) throw err;
+        const departmentList = res;
+        connection.query('SELECT role.id AS id, role.title AS title, role.salary AS salary, department.name AS department FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY department, title ASC;', (err, res) => {
+            if (err) throw err;
+            console.table(res);
+            inquirer.prompt([{
+                name: 'title',
+                type: 'input',
+                message: "Current roles are listed above.\nWhat title would you like the new role to have?"
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: "What salary would you like the new role to have?"
+            },        
+            {
+                name: 'department',
+                type: 'list',
+                message: "Select the department this new role is in:",
+                choices: departmentList
+            }])
+            .then((answer) => {
+                connection.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?);', [answer.title, answer.salary, answer.department], (err, res) => {
+                    if (err) throw err;
+                    viewAllRoles();
+                });
+            })
+            .catch((err) => {
+                if(err) throw err;
+            });    
+        });
+    });
+};
+
+// Function to remove a department
+const removeDepartment = () => {
+    connection.query('SELECT role.id AS value, CONCAT(role.title, " in the ", department.name, " department") AS name FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY name ASC;', (err, res) => {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: "Select the role you wish to remove:",
+            choices: res
+        })
+        .then((answer) => {
+            connection.query('DELETE FROM role WHERE id = ?;', answer.action, (err, res) => {
+                if (err) throw err;
+                console.log(`Role with ID ${answer.action} has been removed`);
+                viewAllRoles();
+            })
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });
+    });
+};
+
+// Function to run the main menu system
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
     .then((answer) => {
@@ -387,15 +457,15 @@ const runCMS = () => {
             break;
             case 'View All Departments':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                viewAllDepartments();
             break;
             case 'Add Department':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                addDepartment();
             break;
             case 'Remove Department':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                removeDepartment();
             break;
             case 'View Salary Budgets by Department':
                 console.log(`You have selected to ${answer.action}`);
