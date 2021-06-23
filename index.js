@@ -318,6 +318,29 @@ const addRole = () => {
     });
 };
 
+// Function to remove a role
+const removeRole = () => {
+    connection.query('SELECT role.id AS value, CONCAT(role.title, " in the ", department.name, " department") AS name FROM role LEFT JOIN department ON role.department_id = department.id ORDER BY name ASC;', (err, res) => {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: "Select the role you wish to remove:",
+            choices: res
+        })
+        .then((answer) => {
+            connection.query('DELETE FROM role WHERE id = ?;', answer.action, (err, res) => {
+                if (err) throw err;
+                console.log(`Role with ID ${answer.action} has been removed`);
+                viewAllRoles();
+            })
+        })
+        .catch((err) => {
+            if (err) throw err;
+        });
+    });
+};
+
 const runCMS = () => {
     inquirer.prompt(mainMenuPrompt)
     .then((answer) => {
@@ -360,7 +383,7 @@ const runCMS = () => {
             break;
             case 'Remove Role':
                 console.log(`You have selected to ${answer.action}`);
-                runCMS();
+                removeRole();
             break;
             case 'View All Departments':
                 console.log(`You have selected to ${answer.action}`);
